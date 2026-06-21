@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>SaavnAPI — Python JioSaavn Wrapper</title>
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --border:#30363d;--border2:#484f58;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --green:#3fb950;--cyan:#79c0ff;--purple:#d2a8ff;
+  --yellow:#e3b341;--orange:#f0883e;--red:#ff7b72;
+  --blue:#58a6ff;--pink:#f778ba;
+  --radius:8px;--font-mono:'JetBrains Mono','Fira Code',monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.6}
+a{color:var(--blue);text-decoration:none}a:hover{text-decoration:underline}
+
+.topbar{position:sticky;top:0;z-index:100;background:rgba(13,17,23,.92);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;padding:12px 24px}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px}
+.logo-icon{width:32px;height:32px;background:linear-gradient(135deg,#1db954,#1ed760);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.badge{font-size:11px;background:var(--bg3);border:1px solid var(--border2);padding:2px 8px;border-radius:20px;color:var(--text2)}
+.topbar nav{margin-left:auto;display:flex;gap:4px}
+.topbar nav a{color:var(--text2);font-size:14px;padding:6px 12px;border-radius:6px;transition:.15s;cursor:pointer}
+.topbar nav a:hover,.topbar nav a.active{background:var(--bg3);color:var(--text);text-decoration:none}
+
+.hero{text-align:center;padding:80px 24px 60px;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(88,166,255,.08) 0%,transparent 70%)}
+.hero h1{font-size:clamp(32px,5vw,60px);font-weight:800;background:linear-gradient(135deg,var(--cyan),var(--purple));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px}
+.hero p{font-size:18px;color:var(--text2);max-width:600px;margin:0 auto 32px}
+.hero-stats{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;margin-bottom:40px}
+.stat{text-align:center}.stat-n{font-size:32px;font-weight:800;color:var(--cyan)}.stat-l{font-size:13px;color:var(--text3);margin-top:2px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;border:none;transition:.18s;text-decoration:none!important}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#4493e0}
+.btn-ghost{background:var(--bg3);color:var(--text);border:1px solid var(--border2)}.btn-ghost:hover{background:var(--bg4)}
+.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.install-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);max-width:540px;margin:40px auto 0;padding:14px 20px;display:flex;align-items:center;gap:12px;font-family:var(--font-mono);font-size:14px}
+.install-bar span{color:var(--green)}.install-bar code{color:var(--text);flex:1}
+.copy-btn{background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;padding:4px;transition:.15s;border-radius:4px}.copy-btn:hover{color:var(--text);background:var(--bg3)}
+
+main{max-width:1200px;margin:0 auto;padding:0 24px 80px}
+
+.tab-row{display:flex;gap:0;border-bottom:1px solid var(--border);margin:48px 0 32px;overflow-x:auto}
+.tab{padding:10px 20px;font-size:14px;font-weight:500;color:var(--text2);border:none;background:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:.15s}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue)}.tab:hover:not(.active){color:var(--text)}
+.tab-panel{display:none}.tab-panel.active{display:block}
+
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:.15s}.card:hover{border-color:var(--border2)}
+.card-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}.card-icon{font-size:20px}
+.card-title{font-family:var(--font-mono);font-size:13px;font-weight:600;color:var(--cyan)}
+.card-desc{font-size:13px;color:var(--text2);line-height:1.55}
+.card-tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:12px;margin-top:10px;font-weight:600;margin-right:4px}
+.tag-new{background:rgba(63,185,80,.15);color:var(--green)}.tag-search{background:rgba(88,166,255,.15);color:var(--blue)}
+.tag-song{background:rgba(210,168,255,.15);color:var(--purple)}.tag-artist{background:rgba(240,136,62,.15);color:var(--orange)}
+.tag-discovery{background:rgba(227,179,65,.15);color:var(--yellow)}
+
+.code-wrap{position:relative;margin:16px 0}
+.code-lang{position:absolute;top:10px;right:52px;font-size:11px;color:var(--text3);font-family:var(--font-mono)}
+.code-copy{position:absolute;top:8px;right:8px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:pointer;font-size:12px;padding:4px 10px;border-radius:4px;transition:.15s}.code-copy:hover{color:var(--text);border-color:var(--border2)}
+pre{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:20px;overflow-x:auto;font-family:var(--font-mono);font-size:13px;line-height:1.7}
+.k{color:var(--red)}.kn{color:var(--red)}.nf{color:var(--blue)}.nb{color:var(--cyan)}.s{color:var(--green)}.c{color:var(--text3);font-style:italic}.n{color:var(--text)}.o{color:var(--text2)}.mi{color:var(--orange)}.kc{color:var(--purple)}.prompt{color:var(--green)}.cmd{color:var(--text)}.out{color:var(--text2)}
+
+.fn-table{width:100%;border-collapse:collapse;font-size:13px}
+.fn-table th{text-align:left;padding:10px 14px;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.fn-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+.fn-table tr:last-child td{border-bottom:none}.fn-table tr:hover td{background:var(--bg2)}
+.fn-name{font-family:var(--font-mono);color:var(--cyan);font-size:12px}.fn-ret{font-family:var(--font-mono);color:var(--text3);font-size:11px}.fn-desc{color:var(--text2)}
+
+/* ── TERMINAL ── */
+.terminal-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.5)}
+.terminal-bar{background:var(--bg3);padding:10px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.dot{width:12px;height:12px;border-radius:50%}.dot-r{background:#ff5f57}.dot-y{background:#febc2e}.dot-g{background:#28c840}
+.terminal-title{margin-left:auto;font-size:12px;color:var(--text3);font-family:var(--font-mono)}
+#term-output{font-family:var(--font-mono);font-size:13px;line-height:1.65;padding:20px;min-height:360px;max-height:560px;overflow-y:auto;white-space:pre-wrap;word-break:break-all}
+.term-input-row{display:flex;align-items:center;border-top:1px solid var(--border);background:var(--bg3)}
+.term-ps{font-family:var(--font-mono);font-size:13px;color:var(--green);padding:10px 0 10px 16px;white-space:nowrap}
+#term-input{flex:1;background:transparent;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:13px;padding:10px 8px}
+.term-run{background:none;border:none;color:var(--text3);cursor:pointer;padding:10px 16px;font-size:18px;transition:.15s}.term-run:hover{color:var(--green)}
+
+.quick-cmds{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.qcmd{background:var(--bg3);border:1px solid var(--border);color:var(--text2);font-family:var(--font-mono);font-size:12px;padding:5px 12px;border-radius:6px;cursor:pointer;transition:.15s}
+.qcmd:hover{border-color:var(--blue);color:var(--blue)}
+.qcmd-new{border-color:rgba(63,185,80,.4);color:var(--green)}
+
+.steps{display:flex;flex-direction:column;gap:24px}
+.step{display:flex;gap:16px}
+.step-num{min-width:32px;height:32px;background:var(--blue);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;flex-shrink:0;margin-top:2px}
+.step-body h3{font-size:15px;margin-bottom:8px}.step-body p{color:var(--text2);font-size:14px;margin-bottom:8px}
+
+.section-title{font-size:22px;font-weight:700;margin-bottom:8px}
+.section-sub{color:var(--text2);font-size:14px;margin-bottom:24px}
+.divider{border:none;border-top:1px solid var(--border);margin:40px 0}
+.h3-cat{margin:28px 0 12px;font-family:var(--font-mono);font-size:15px}
+
+footer{border-top:1px solid var(--border);padding:32px 24px;text-align:center;color:var(--text3);font-size:13px}
+footer a{color:var(--text2)}
+
+@media(max-width:640px){.topbar nav{display:none}.hero h1{font-size:32px}.hero-stats{gap:20px}.stat-n{font-size:24px}.card-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="logo"><div class="logo-icon">🎵</div><span>SaavnAPI</span></div>
+  <span class="badge">v2026.6.21</span>
+  <nav>
+    <a onclick="showTab('overview')" class="active">Overview</a>
+    <a onclick="showTab('terminal')">🖥 Live Terminal</a>
+    <a onclick="showTab('cli')">⌨ CLI Guide</a>
+    <a onclick="showTab('api')">📦 API Code</a>
+    <a onclick="showTab('functions')">📋 Functions</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>JioSaavn for Python</h1>
+  <p>Fully-async Python wrapper with 27 functions — search, radio, lyrics, artists, trending &amp; more. No API key needed.</p>
+  <div class="hero-stats">
+    <div class="stat"><div class="stat-n">27</div><div class="stat-l">Functions</div></div>
+    <div class="stat"><div class="stat-n">100%</div><div class="stat-l">Async</div></div>
+    <div class="stat"><div class="stat-n">320p</div><div class="stat-l">Stream URLs</div></div>
+    <div class="stat"><div class="stat-n">0</div><div class="stat-l">API Keys</div></div>
+  </div>
+  <div class="hero-btns">
+    <button class="btn btn-primary" onclick="showTab('terminal')">▶ Try in Terminal</button>
+    <button class="btn btn-ghost" onclick="showTab('cli')">⌨ CLI Guide</button>
+    <button class="btn btn-ghost" onclick="showTab('api')">📖 API Reference</button>
+  </div>
+  <div class="install-bar">
+    <span>$</span>
+    <code>pip install SaavnAPI</code>
+    <button class="copy-btn" onclick="copyText('pip install SaavnAPI',this)">⧉</button>
+  </div>
+</section>
+
+<main>
+<div class="tab-row">
+  <button class="tab active" onclick="showTab('overview')">Overview</button>
+  <button class="tab" onclick="showTab('terminal')">🖥 Live Terminal</button>
+  <button class="tab" onclick="showTab('cli')">⌨ CLI Guide</button>
+  <button class="tab" onclick="showTab('api')">📦 API Code</button>
+  <button class="tab" onclick="showTab('functions')">📋 All 27 Functions</button>
+</div>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div id="tab-overview" class="tab-panel active">
+  <div class="section-title">What's inside</div>
+  <p class="section-sub">27 async functions — no API key, no rate-limit setup. Just pip install and go.</p>
+  <div class="card-grid">
+    <div class="card"><div class="card-head"><span class="card-icon">🔗</span><span class="card-title">get_song_by_url(url)</span></div><p class="card-desc">Paste any JioSaavn share link and get the full song object instantly — no ID lookup needed.</p><span class="card-tag tag-new">NEW</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">📻</span><span class="card-title">get_radio(song_id)</span></div><p class="card-desc">Create a live radio station seeded from any song. Returns a full queue with 320kbps stream URLs.</p><span class="card-tag tag-new">NEW</span><span class="card-tag tag-song">Song</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">🌐</span><span class="card-title">search_all(query)</span></div><p class="card-desc">Search songs, albums, artists and playlists simultaneously in one parallel async call.</p><span class="card-tag tag-new">NEW</span><span class="card-tag tag-search">Search</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">📦</span><span class="card-title">get_songs(ids)</span></div><p class="card-desc">Batch-fetch up to 50 songs in a single API call. Perfect for loading a playlist's worth of metadata fast.</p><span class="card-tag tag-new">NEW</span><span class="card-tag tag-song">Song</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">🏠</span><span class="card-title">get_modules(language)</span></div><p class="card-desc">Get trending, new releases, charts and featured playlists in one call — ideal for a home screen.</p><span class="card-tag tag-new">NEW</span><span class="card-tag tag-discovery">Discovery</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">🔎</span><span class="card-title">get_top_searches()</span></div><p class="card-desc">Live trending search terms on JioSaavn — power your autocomplete or a "popular" suggestions bar.</p><span class="card-tag tag-new">NEW</span><span class="card-tag tag-discovery">Discovery</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">👤</span><span class="card-title">get_artist(artist_id)</span></div><p class="card-desc">Full artist profile: bio, social links, top songs, top albums, similar artists and follower count.</p><span class="card-tag tag-artist">Artist</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">🎵</span><span class="card-title">get_song(song_id)</span></div><p class="card-desc">Full song metadata with decrypted 320 kbps stream URL, optional lyrics, album info and play count.</p><span class="card-tag tag-song">Song</span></div>
+    <div class="card"><div class="card-head"><span class="card-icon">⚡</span><span class="card-title">JioSaavnClient</span></div><p class="card-desc">Reuse one aiohttp session across all calls for maximum throughput — ideal for batch pipelines.</p><span class="card-tag tag-discovery">Client</span></div>
+  </div>
+  <hr class="divider"/>
+  <div class="section-title">Quick start</div>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">import</span> <span class="n">asyncio</span>
+<span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">search_all</span><span class="o">,</span> <span class="n">get_radio</span><span class="o">,</span> <span class="n">get_modules</span><span class="o">,</span> <span class="n">get_songs</span>
+
+<span class="k">async def</span> <span class="nf">main</span><span class="o">():</span>
+    <span class="c"># 1 — Search everything at once</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">search_all</span><span class="o">(</span><span class="s">"Arijit Singh"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+    <span class="k">for</span> <span class="n">s</span> <span class="k">in</span> <span class="n">results</span><span class="o">[</span><span class="s">"songs"</span><span class="o">]:</span>
+        <span class="nb">print</span><span class="o">(</span><span class="n">s</span><span class="o">[</span><span class="s">"song"</span><span class="o">],</span> <span class="s">"—"</span><span class="o">,</span> <span class="n">s</span><span class="o">[</span><span class="s">"media_url"</span><span class="o">])</span>
+
+    <span class="c"># 2 — Start a radio station</span>
+    <span class="n">seed_id</span> <span class="o">=</span> <span class="n">results</span><span class="o">[</span><span class="s">"songs"</span><span class="o">][</span><span class="mi">0</span><span class="o">][</span><span class="s">"id"</span><span class="o">]</span>
+    <span class="n">radio</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_radio</span><span class="o">(</span><span class="n">seed_id</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="o">)</span>
+
+    <span class="c"># 3 — Batch-fetch those 10 songs in one call</span>
+    <span class="n">tracks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_songs</span><span class="o">([</span><span class="n">t</span><span class="o">[</span><span class="s">"id"</span><span class="o">]</span> <span class="k">for</span> <span class="n">t</span> <span class="k">in</span> <span class="n">radio</span><span class="o">])</span>
+
+    <span class="c"># 4 — Full homepage modules for Hindi</span>
+    <span class="n">home</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_modules</span><span class="o">(</span><span class="n">language</span><span class="o">=</span><span class="s">"hindi"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+    <span class="k">for</span> <span class="n">t</span> <span class="k">in</span> <span class="n">home</span><span class="o">[</span><span class="s">"trending"</span><span class="o">]:</span>
+        <span class="nb">print</span><span class="o">(</span><span class="n">t</span><span class="o">[</span><span class="s">"title"</span><span class="o">])</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="nf">run</span><span class="o">(</span><span class="n">main</span><span class="o">())</span>
+</code></pre></div>
+</div>
+
+<!-- ═══ TERMINAL ═══ -->
+<div id="tab-terminal" class="tab-panel">
+  <div class="section-title">🖥 Live Terminal</div>
+  <p class="section-sub">Click any quick-command button or type a Python call to see realistic output. Use ↑↓ for history.</p>
+
+  <div class="quick-cmds">
+    <button class="qcmd" onclick="runQuick('help')">help</button>
+    <button class="qcmd" onclick="runQuick('search')">search()</button>
+    <button class="qcmd qcmd-new" onclick="runQuick('search_all')">search_all() 🆕</button>
+    <button class="qcmd" onclick="runQuick('get_song')">get_song()</button>
+    <button class="qcmd qcmd-new" onclick="runQuick('get_songs')">get_songs() batch 🆕</button>
+    <button class="qcmd qcmd-new" onclick="runQuick('get_radio')">get_radio() 📻 🆕</button>
+    <button class="qcmd" onclick="runQuick('get_lyrics')">get_lyrics()</button>
+    <button class="qcmd" onclick="runQuick('get_suggestions')">get_suggestions()</button>
+    <button class="qcmd qcmd-new" onclick="runQuick('get_song_by_url')">get_song_by_url() 🔗 🆕</button>
+    <button class="qcmd" onclick="runQuick('get_artist')">get_artist()</button>
+    <button class="qcmd" onclick="runQuick('get_album')">get_album()</button>
+    <button class="qcmd" onclick="runQuick('get_playlist')">get_playlist()</button>
+    <button class="qcmd" onclick="runQuick('get_trending')">get_trending()</button>
+    <button class="qcmd qcmd-new" onclick="runQuick('get_modules')">get_modules() 🏠 🆕</button>
+    <button class="qcmd" onclick="runQuick('get_charts')">get_charts()</button>
+    <button class="qcmd qcmd-new" onclick="runQuick('get_top_searches')">get_top_searches() 🆕</button>
+    <button class="qcmd" onclick="runQuick('batch_client')">JioSaavnClient ⚡</button>
+    <button class="qcmd" onclick="runQuick('cli_mode')">CLI mode</button>
+    <button class="qcmd" style="color:var(--red)" onclick="clearTerm()">clear</button>
+  </div>
+
+  <div class="terminal-wrap">
+    <div class="terminal-bar">
+      <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+      <span class="terminal-title">python3  ·  SaavnAPI v2026.6.21  ·  27 functions</span>
+    </div>
+    <div id="term-output"></div>
+    <div class="term-input-row">
+      <span class="term-ps">>>> </span>
+      <input id="term-input" type="text" autocomplete="off" spellcheck="false" placeholder="Type a call or click a button above… (↑↓ for history)"/>
+      <button class="term-run" onclick="termRun()" title="Run (Enter)">⏎</button>
+    </div>
+  </div>
+  <p style="color:var(--text3);font-size:12px;margin-top:10px">ℹ Outputs are realistic simulations. Run <code style="background:var(--bg3);padding:1px 6px;border-radius:3px;font-family:var(--font-mono)">python Testing.py</code> locally for live data from JioSaavn.</p>
+</div>
+
+<!-- ═══ CLI GUIDE ═══ -->
+<div id="tab-cli" class="tab-panel">
+  <div class="section-title">⌨ CLI Guide</div>
+  <p class="section-sub">Run <code style="background:var(--bg3);padding:2px 8px;border-radius:4px;font-family:var(--font-mono)">Testing.py</code> for a full interactive numbered menu covering all 27 functions.</p>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-body"><h3>Install dependencies</h3>
+      <div class="code-wrap"><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="prompt">$</span> <span class="cmd">pip install aiohttp</span>
+<span class="c"># or install the full package from ZIP:</span>
+<span class="prompt">$</span> <span class="cmd">pip install -e ./SaavnAPI</span></code></pre></div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-body"><h3>Launch the interactive tester</h3>
+      <div class="code-wrap"><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="prompt">$</span> <span class="cmd">cd SaavnAPI</span>
+<span class="prompt">$</span> <span class="cmd">python Testing.py</span></code></pre></div></div>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-body"><h3>Pick a function from the menu</h3>
+<pre><code><span class="out">╔══════════════════════════════════════════════════════════╗
+║       SaavnAPI Interactive Tester   v2026.6.21           ║
+║       27 functions  ·  fully tested  ·  async            ║
+╚══════════════════════════════════════════════════════════╝
+
+   1.  search()               15.  get_artist()
+   2.  search_songs()         16.  get_artist_top_songs()
+   3.  search_albums()        17.  get_artist_top_albums()
+   4.  search_artists()       18.  get_album()
+   5.  search_playlists()     19.  get_playlist()
+   6.  search_all() 🆕        20.  get_trending()
+   7.  get_song()             21.  get_new_releases()
+   8.  get_songs() batch 🆕   22.  get_top_searches() 🆕
+   9.  get_lyrics()           23.  get_charts()
+  10.  get_suggestions()      24.  get_featured_playlists()
+  11.  get_radio() 📻 🆕      25.  get_modules() 🏠 🆕
+  12.  get_song_by_url() 🆕   26.  JioSaavnClient ⚡
+  13.  get_album_by_url() 🆕  27.  Raw JSON output
+  14.  get_playlist_by_url()🆕
+
+  Choose (0-27):</span></code></pre></div>
+    </div>
+    <div class="step">
+      <div class="step-num">4</div>
+      <div class="step-body"><h3>Fill inputs — defaults pre-filled in brackets</h3>
+<pre><code><span class="out">  → Query [Arijit Singh]: </span><span class="cmd">Tum Hi Ho</span>
+<span class="out">  → Limit [5]: </span><span class="cmd">3</span>
+
+  ✅  3 songs found
+   1.  Tum Hi Ho  —  Arijit Singh
+       id=aRZbUYD7  dur=4:22  lang=hindi  lyrics=True
+   2.  Tum Hi Ho (Reprise)  —  Arijit Singh
+       id=FpxaLHiB  dur=2:11  lang=hindi  lyrics=True
+   3.  Chahun Main Ya Naa  —  Arijit Singh, Palak Muchhal
+       id=4ZSL1xJk  dur=4:48  lang=hindi  lyrics=False</span></code></pre></div>
+    </div>
+    <div class="step">
+      <div class="step-num">5</div>
+      <div class="step-body"><h3>Quick one-liner from shell</h3>
+      <div class="code-wrap"><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="prompt">$</span> <span class="cmd">python -c "
+import asyncio, sys
+sys.path.insert(0,'SaavnAPI')
+from JioSaavn import search, get_radio
+songs = asyncio.run(search('Tum Hi Ho', limit=1))
+radio = asyncio.run(get_radio(songs[0]['id'], limit=5))
+for t in radio: print(t['song'], '|', t['media_url'][:50])
+"</span></code></pre></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ API CODE ═══ -->
+<div id="tab-api" class="tab-panel">
+  <div class="section-title">📦 Python API Examples</div>
+  <p class="section-sub">Copy-paste ready code for every feature. All functions are async — call with <code style="font-family:var(--font-mono);background:var(--bg3);padding:1px 6px;border-radius:3px">await</code>.</p>
+
+  <h3 class="h3-cat" style="color:var(--cyan)">🔍 Search</h3>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">search</span><span class="o">,</span> <span class="n">search_songs</span><span class="o">,</span> <span class="n">search_albums</span>
+<span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">search_artists</span><span class="o">,</span> <span class="n">search_playlists</span><span class="o">,</span> <span class="n">search_all</span>
+
+songs   <span class="o">=</span> <span class="k">await</span> <span class="n">search</span><span class="o">(</span><span class="s">"Tum Hi Ho"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+songs   <span class="o">=</span> <span class="k">await</span> <span class="n">search_songs</span><span class="o">(</span><span class="s">"Arijit Singh"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">20</span><span class="o">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">2</span><span class="o">)</span>
+albums  <span class="o">=</span> <span class="k">await</span> <span class="n">search_albums</span><span class="o">(</span><span class="s">"Rockstar"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+artists <span class="o">=</span> <span class="k">await</span> <span class="n">search_artists</span><span class="o">(</span><span class="s">"A.R. Rahman"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+
+<span class="c"># All 4 categories in one parallel call — NEW</span>
+<span class="n">results</span> <span class="o">=</span> <span class="k">await</span> <span class="n">search_all</span><span class="o">(</span><span class="s">"Pritam"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">results</span><span class="o">[</span><span class="s">"songs"</span><span class="o">],</span> <span class="n">results</span><span class="o">[</span><span class="s">"albums"</span><span class="o">],</span> <span class="n">results</span><span class="o">[</span><span class="s">"artists"</span><span class="o">],</span> <span class="n">results</span><span class="o">[</span><span class="s">"playlists"</span><span class="o">])</span>
+</code></pre></div>
+
+  <h3 class="h3-cat" style="color:var(--purple)">🎵 Songs</h3>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">get_song</span><span class="o">,</span> <span class="n">get_songs</span><span class="o">,</span> <span class="n">get_lyrics</span><span class="o">,</span> <span class="n">get_suggestions</span><span class="o">,</span> <span class="n">get_radio</span>
+
+<span class="c"># Single song with lyrics + decrypted 320kbps stream URL</span>
+<span class="n">song</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_song</span><span class="o">(</span><span class="s">"aRZbUYD7"</span><span class="o">,</span> <span class="n">lyrics</span><span class="o">=</span><span class="kc">True</span><span class="o">)</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">song</span><span class="o">[</span><span class="s">"media_url"</span><span class="o">])</span>   <span class="c"># 320 kbps .mp4 stream, ready to play</span>
+
+<span class="c"># Batch fetch up to 50 songs in one call — NEW</span>
+<span class="n">tracks</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_songs</span><span class="o">([</span><span class="s">"aRZbUYD7"</span><span class="o">,</span> <span class="s">"4ZSL1xJk"</span><span class="o">,</span> <span class="s">"FpxaLHiB"</span><span class="o">])</span>
+
+<span class="c"># Radio station seeded from a song — NEW</span>
+<span class="n">radio</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_radio</span><span class="o">(</span><span class="s">"aRZbUYD7"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">15</span><span class="o">)</span>
+<span class="k">for</span> <span class="n">t</span> <span class="k">in</span> <span class="n">radio</span><span class="o">:</span>
+    <span class="nb">print</span><span class="o">(</span><span class="n">t</span><span class="o">[</span><span class="s">"song"</span><span class="o">],</span> <span class="n">t</span><span class="o">[</span><span class="s">"media_url"</span><span class="o">])</span>
+
+<span class="c"># Similar song suggestions</span>
+<span class="n">recs</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_suggestions</span><span class="o">(</span><span class="s">"aRZbUYD7"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="o">)</span>
+</code></pre></div>
+
+  <h3 class="h3-cat" style="color:var(--green)">🔗 URL Resolvers — NEW</h3>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">get_song_by_url</span><span class="o">,</span> <span class="n">get_album_by_url</span><span class="o">,</span> <span class="n">get_playlist_by_url</span>
+
+<span class="c"># Paste any JioSaavn share link — no ID extraction needed</span>
+<span class="n">song</span>     <span class="o">=</span> <span class="k">await</span> <span class="n">get_song_by_url</span><span class="o">(</span><span class="s">"https://www.jiosaavn.com/song/tum-hi-ho/aRZbUYD7"</span><span class="o">,</span> <span class="n">lyrics</span><span class="o">=</span><span class="kc">True</span><span class="o">)</span>
+<span class="n">album</span>    <span class="o">=</span> <span class="k">await</span> <span class="n">get_album_by_url</span><span class="o">(</span><span class="s">"https://www.jiosaavn.com/album/rockstar/OelUBDQMMXc_"</span><span class="o">)</span>
+<span class="n">playlist</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_playlist_by_url</span><span class="o">(</span><span class="s">"https://www.jiosaavn.com/featured/top-50/AbCdEf12"</span><span class="o">)</span>
+</code></pre></div>
+
+  <h3 class="h3-cat" style="color:var(--orange)">👤 Artists</h3>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">search_artists</span><span class="o">,</span> <span class="n">get_artist</span><span class="o">,</span> <span class="n">get_artist_top_songs</span><span class="o">,</span> <span class="n">get_artist_top_albums</span>
+
+<span class="c"># Step 1: find the numeric artist ID</span>
+<span class="n">artists</span> <span class="o">=</span> <span class="k">await</span> <span class="n">search_artists</span><span class="o">(</span><span class="s">"Arijit Singh"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="o">)</span>
+<span class="n">aid</span>     <span class="o">=</span> <span class="n">artists</span><span class="o">[</span><span class="mi">0</span><span class="o">][</span><span class="s">"id"</span><span class="o">]</span>          <span class="c"># e.g. "459320"</span>
+
+<span class="c"># Step 2: full profile with top songs + albums</span>
+<span class="n">artist</span>  <span class="o">=</span> <span class="k">await</span> <span class="n">get_artist</span><span class="o">(</span><span class="n">aid</span><span class="o">,</span> <span class="n">n_song</span><span class="o">=</span><span class="mi">10</span><span class="o">,</span> <span class="n">n_album</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">artist</span><span class="o">[</span><span class="s">"name"</span><span class="o">],</span> <span class="n">artist</span><span class="o">[</span><span class="s">"follower_count"</span><span class="o">],</span> <span class="n">artist</span><span class="o">[</span><span class="s">"bio"</span><span class="o">])</span>
+
+<span class="c"># Paginate through all songs (page 2, sorted by latest)</span>
+<span class="n">page2</span>   <span class="o">=</span> <span class="k">await</span> <span class="n">get_artist_top_songs</span><span class="o">(</span><span class="n">aid</span><span class="o">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">2</span><span class="o">,</span> <span class="n">category</span><span class="o">=</span><span class="s">"latest"</span><span class="o">)</span>
+</code></pre></div>
+
+  <h3 class="h3-cat" style="color:var(--yellow)">🔥 Discovery</h3>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">get_trending</span><span class="o">,</span> <span class="n">get_new_releases</span><span class="o">,</span> <span class="n">get_top_searches</span>
+<span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">get_charts</span><span class="o">,</span> <span class="n">get_featured_playlists</span><span class="o">,</span> <span class="n">get_modules</span>
+
+<span class="n">trending</span>  <span class="o">=</span> <span class="k">await</span> <span class="n">get_trending</span><span class="o">(</span><span class="n">language</span><span class="o">=</span><span class="s">"hindi"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="o">)</span>
+<span class="n">releases</span>  <span class="o">=</span> <span class="k">await</span> <span class="n">get_new_releases</span><span class="o">(</span><span class="n">language</span><span class="o">=</span><span class="s">"punjabi"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">)</span>
+<span class="n">top_terms</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_top_searches</span><span class="o">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="o">)</span>  <span class="c"># NEW</span>
+
+<span class="c"># All homepage data in one call — NEW</span>
+<span class="n">home</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_modules</span><span class="o">(</span><span class="n">language</span><span class="o">=</span><span class="s">"hindi"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">8</span><span class="o">)</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">home</span><span class="o">[</span><span class="s">"trending"</span><span class="o">])</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">home</span><span class="o">[</span><span class="s">"new_releases"</span><span class="o">])</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">home</span><span class="o">[</span><span class="s">"charts"</span><span class="o">])</span>
+<span class="nb">print</span><span class="o">(</span><span class="n">home</span><span class="o">[</span><span class="s">"featured_playlists"</span><span class="o">])</span>
+</code></pre></div>
+
+  <h3 class="h3-cat" style="color:var(--pink)">⚡ JioSaavnClient — shared session</h3>
+  <div class="code-wrap"><span class="code-lang">python</span><button class="code-copy" onclick="copyBlock(this)">copy</button>
+<pre><code><span class="kn">import</span> <span class="n">asyncio</span>
+<span class="kn">from</span> <span class="n">JioSaavn</span> <span class="kn">import</span> <span class="n">JioSaavnClient</span><span class="o">,</span> <span class="n">search_all</span><span class="o">,</span> <span class="n">get_charts</span><span class="o">,</span> <span class="n">get_modules</span><span class="o">,</span> <span class="n">get_trending</span>
+
+<span class="k">async def</span> <span class="nf">main</span><span class="o">():</span>
+    <span class="k">async with</span> <span class="n">JioSaavnClient</span><span class="o">()</span> <span class="k">as</span> <span class="n">client</span><span class="o">:</span>  <span class="c"># one shared aiohttp session</span>
+        <span class="n">results</span><span class="o">,</span> <span class="n">charts</span><span class="o">,</span> <span class="n">home</span><span class="o">,</span> <span class="n">trending</span> <span class="o">=</span> <span class="k">await</span> <span class="n">asyncio</span><span class="o">.</span><span class="nf">gather</span><span class="o">(</span>
+            <span class="n">search_all</span><span class="o">(</span><span class="s">"Arijit Singh"</span><span class="o">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">5</span><span class="o">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="o">),</span>
+            <span class="n">get_charts</span><span class="o">(</span><span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="o">),</span>
+            <span class="n">get_modules</span><span class="o">(</span><span class="n">language</span><span class="o">=</span><span class="s">"hindi"</span><span class="o">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="o">),</span>
+            <span class="n">get_trending</span><span class="o">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">10</span><span class="o">,</span> <span class="n">client</span><span class="o">=</span><span class="n">client</span><span class="o">),</span>
+        <span class="o">)</span>
+
+<span class="n">asyncio</span><span class="o">.</span><span class="nf">run</span><span class="o">(</span><span class="n">main</span><span class="o">())</span>
+</code></pre></div>
+</div>
+
+<!-- ═══ FUNCTIONS TABLE ═══ -->
+<div id="tab-functions" class="tab-panel">
+  <div class="section-title">📋 All 27 Functions</div>
+  <p class="section-sub">🆕 = added in v2026.6.21 &nbsp;·&nbsp; All accept an optional <code style="font-family:var(--font-mono);background:var(--bg3);padding:1px 5px;border-radius:3px">client=</code> kwarg for shared sessions.</p>
+  <div style="overflow-x:auto">
+  <table class="fn-table">
+    <thead><tr><th>Function</th><th>Returns</th><th>Description</th><th></th></tr></thead>
+    <tbody>
+      <tr><td class="fn-name">search(query, limit, lyrics)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Search songs by keyword</td><td><span class="card-tag tag-search" style="margin:0">Search</span></td></tr>
+      <tr><td class="fn-name">search_songs(query, limit, page)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Paginated song search</td><td><span class="card-tag tag-search" style="margin:0">Search</span></td></tr>
+      <tr><td class="fn-name">search_albums(query, limit, page)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Search albums</td><td><span class="card-tag tag-search" style="margin:0">Search</span></td></tr>
+      <tr><td class="fn-name">search_artists(query, limit, page)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Search artists</td><td><span class="card-tag tag-search" style="margin:0">Search</span></td></tr>
+      <tr><td class="fn-name">search_playlists(query, limit, page)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Search playlists</td><td><span class="card-tag tag-search" style="margin:0">Search</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">search_all(query, limit) 🆕</td><td class="fn-ret">dict</td><td class="fn-desc">All 4 categories in one parallel call</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr><td class="fn-name">get_song(song_id, lyrics)</td><td class="fn-ret">dict | None</td><td class="fn-desc">Full song details + 320kbps stream URL</td><td><span class="card-tag tag-song" style="margin:0">Song</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_songs(song_ids, lyrics) 🆕</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Batch fetch up to 50 songs in one API call</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr><td class="fn-name">get_lyrics(song_id)</td><td class="fn-ret">str | None</td><td class="fn-desc">Full lyrics text</td><td><span class="card-tag tag-song" style="margin:0">Song</span></td></tr>
+      <tr><td class="fn-name">get_suggestions(song_id, limit)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Similar song recommendations</td><td><span class="card-tag tag-song" style="margin:0">Song</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_radio(song_id, limit) 🆕</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Radio station seeded from a song</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_song_by_url(url, lyrics) 🆕</td><td class="fn-ret">dict | None</td><td class="fn-desc">Resolve JioSaavn song URL → full song dict</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_album_by_url(url) 🆕</td><td class="fn-ret">dict | None</td><td class="fn-desc">Resolve JioSaavn album URL → album dict</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_playlist_by_url(url) 🆕</td><td class="fn-ret">dict | None</td><td class="fn-desc">Resolve JioSaavn playlist URL → playlist dict</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr><td class="fn-name">get_album(album_id, lyrics)</td><td class="fn-ret">dict | None</td><td class="fn-desc">Album details + full track list</td><td><span class="card-tag tag-artist" style="margin:0">Album</span></td></tr>
+      <tr><td class="fn-name">get_playlist(list_id, lyrics)</td><td class="fn-ret">dict | None</td><td class="fn-desc">Playlist details + all songs</td><td><span class="card-tag tag-artist" style="margin:0">Playlist</span></td></tr>
+      <tr><td class="fn-name">get_artist(artist_id, n_song, n_album)</td><td class="fn-ret">dict | None</td><td class="fn-desc">Full artist profile with bio + top content</td><td><span class="card-tag tag-artist" style="margin:0">Artist</span></td></tr>
+      <tr><td class="fn-name">get_artist_top_songs(artist_id, page, category)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Artist top songs (paginated)</td><td><span class="card-tag tag-artist" style="margin:0">Artist</span></td></tr>
+      <tr><td class="fn-name">get_artist_top_albums(artist_id, page)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Artist top albums (paginated)</td><td><span class="card-tag tag-artist" style="margin:0">Artist</span></td></tr>
+      <tr><td class="fn-name">get_trending(language, limit)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Currently trending songs and albums</td><td><span class="card-tag tag-discovery" style="margin:0">Discovery</span></td></tr>
+      <tr><td class="fn-name">get_new_releases(language, limit)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Newly released albums</td><td><span class="card-tag tag-discovery" style="margin:0">Discovery</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_top_searches(limit) 🆕</td><td class="fn-ret">list[str]</td><td class="fn-desc">Live trending search terms</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr><td class="fn-name">get_charts()</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Official JioSaavn charts</td><td><span class="card-tag tag-discovery" style="margin:0">Discovery</span></td></tr>
+      <tr><td class="fn-name">get_featured_playlists(language, limit)</td><td class="fn-ret">list[dict]</td><td class="fn-desc">Curated featured playlists</td><td><span class="card-tag tag-discovery" style="margin:0">Discovery</span></td></tr>
+      <tr style="background:rgba(63,185,80,.04)"><td class="fn-name">get_modules(language, limit) 🆕</td><td class="fn-ret">dict</td><td class="fn-desc">All homepage sections in one call</td><td><span class="card-tag tag-new" style="margin:0">NEW</span></td></tr>
+      <tr><td class="fn-name">JioSaavnClient</td><td class="fn-ret">async ctx mgr</td><td class="fn-desc">Shared aiohttp session for batch requests</td><td><span class="card-tag tag-discovery" style="margin:0">Client</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+</div>
+</main>
+
+<footer><p>SaavnAPI v2026.6.21 &nbsp;·&nbsp; Built by Abhi Singh &nbsp;·&nbsp; MIT License &nbsp;·&nbsp; Wrapper for <a href="https://www.jiosaavn.com" target="_blank">JioSaavn</a></p></footer>
+
+<script>
+// ── Tabs ──────────────────────────────────────────────
+const TABS=['overview','terminal','cli','api','functions'];
+function showTab(id){
+  TABS.forEach(t=>{
+    document.getElementById('tab-'+t)?.classList.toggle('active',t===id);
+  });
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('active',TABS[i]===id));
+  document.querySelectorAll('.topbar nav a').forEach((a,i)=>a.classList.toggle('active',TABS[i]===id));
+  if(id==='terminal') setTimeout(()=>document.getElementById('term-input')?.focus(),50);
+}
+
+// ── Copy ─────────────────────────────────────────────
+function copyText(t,btn){
+  navigator.clipboard.writeText(t).then(()=>{if(btn){const o=btn.textContent;btn.textContent='✓';setTimeout(()=>btn.textContent=o,1500);}});
+}
+function copyBlock(btn){
+  const pre=btn.closest('.code-wrap').querySelector('pre');
+  copyText(pre.innerText,btn);btn.textContent='✓';setTimeout(()=>btn.textContent='copy',1500);
+}
+
+// ── Terminal ─────────────────────────────────────────
+const $out=()=>document.getElementById('term-output');
+const $inp=()=>document.getElementById('term-input');
+let hist=[],hIdx=-1;
+
+function tw(html){
+  const d=document.createElement('div');d.innerHTML=html;
+  $out().appendChild(d);$out().scrollTop=$out().scrollHeight;
+}
+function tl(text,style=''){
+  tw(`<span style="${style}">${esc(text)}</span>`);
+}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function clearTerm(){
+  $out().innerHTML='';
+  tw(`<span style="color:var(--text3)">SaavnAPI Interactive Demo  ·  v2026.6.21  ·  27 functions\nType <b style="color:var(--cyan)">help</b> or click a quick button above.\n</span>`);
+}
+function termKeydown(e){
+  if(e.key==='Enter'){termRun();return;}
+  if(e.key==='ArrowUp'){if(hIdx<hist.length-1){hIdx++;$inp().value=hist[hIdx];}e.preventDefault();}
+  if(e.key==='ArrowDown'){if(hIdx>0){hIdx--;$inp().value=hist[hIdx];}else{hIdx=-1;$inp().value='';}e.preventDefault();}
+}
+function termRun(){
+  const cmd=$inp().value.trim();if(!cmd)return;
+  hist.unshift(cmd);hIdx=-1;$inp().value='';
+  tw(`<span style="color:var(--green)">>>> </span><span style="color:var(--text)">${esc(cmd)}</span>`);
+  processCmd(cmd.toLowerCase());
+}
+function runQuick(key){
+  showTab('terminal');
+  const demos={
+    help:'help',search:'await search("Tum Hi Ho", limit=3)',
+    search_all:'await search_all("Arijit Singh", limit=3)',
+    get_song:'await get_song("aRZbUYD7")',
+    get_songs:'await get_songs(["aRZbUYD7","4ZSL1xJk","FpxaLHiB"])',
+    get_radio:'await get_radio("aRZbUYD7", limit=8)',
+    get_artist:'await get_artist("459320", n_song=5, n_album=3)',
+    get_album:'await get_album("14284038")',
+    get_playlist:'await get_playlist("159144718")',
+    get_lyrics:'await get_lyrics("aRZbUYD7")',
+    get_suggestions:'await get_suggestions("aRZbUYD7", limit=5)',
+    get_trending:'await get_trending(language="hindi", limit=5)',
+    get_modules:'await get_modules(language="hindi", limit=5)',
+    get_charts:'await get_charts()',
+    get_top_searches:'await get_top_searches(limit=10)',
+    get_song_by_url:'await get_song_by_url("https://www.jiosaavn.com/song/tum-hi-ho/aRZbUYD7")',
+    batch_client:'async with JioSaavnClient() as c: await search("Arijit Singh", limit=3, client=c)',
+    cli_mode:'# To run CLI: cd SaavnAPI && python Testing.py',
+  };
+  setTimeout(()=>{
+    if(key==='clear'){clearTerm();return;}
+    const cmd=demos[key]||key;
+    $inp().value=cmd; termRun();
+  },120);
+}
+
+// ── Demo data ─────────────────────────────────────────
+const SONGS=[
+  {id:'aRZbUYD7',s:'Tum Hi Ho',a:'Arijit Singh',dur:'4:22',l:'hindi',ly:true},
+  {id:'FpxaLHiB',s:'Tum Hi Ho (Reprise)',a:'Arijit Singh',dur:'2:11',l:'hindi',ly:true},
+  {id:'4ZSL1xJk',s:'Chahun Main Ya Naa',a:'Arijit Singh, Palak Muchhal',dur:'4:48',l:'hindi',ly:false},
+];
+const RADIO_Q=[
+  'Kal Ho Naa Ho','Tere Naam','Dil Chahta Hai',
+  'Kabhi Khushi Kabhie Gham','Ek Ladki Ko Dekha','Yeh Dil Deewana',
+  'Kuch Kuch Hota Hai','Dilwale Dulhania Le Jayenge',
+];
+const TRENDING=[
+  {t:'Kesariya',kind:'song',l:'hindi',d:'2022-07-17'},
+  {t:'Raataan Lambiyan',kind:'song',l:'hindi',d:'2021-07-02'},
+  {t:'Pal Pal Dil Ke Paas',kind:'album',l:'hindi',d:'2019-09-20'},
+  {t:'Apna Time Aayega',kind:'song',l:'hindi',d:'2019-01-17'},
+  {t:'Tum Hi Ho',kind:'song',l:'hindi',d:'2013-04-16'},
+];
+const TOP_SEARCHES=['Arijit Singh','Pritam','AP Dhillon','Shreya Ghoshal',
+  'A.R. Rahman','Diljit Dosanjh','Jubin Nautiyal','Neha Kakkar','Honey Singh','Atif Aslam'];
+const CHARTS=[
+  {t:'Top 50 — India',n:50,f:'1.2M'},
+  {t:'Bollywood Top 40',n:40,f:'840K'},
+  {t:'Hindi Workout',n:30,f:'215K'},
+  {t:'Punjabi Hits',n:25,f:'560K'},
+];
+
+function showSong(s,i){tw(`  <b style="color:var(--text)">${i?i+'. ':''}${esc(s.s||s.song||s.title)}</b>  —  <span style="color:var(--text2)">${esc(s.a||s.primary_artists||'')}</span>\n     <span style="color:var(--text3)">id=${s.id||'?'}  dur=${s.dur||s.duration||'?'}  lang=${s.l||s.language||'?'}  lyrics=${s.ly??s.has_lyrics}</span>`);}
+
+async function processCmd(c){
+  // help
+  if(c==='help'||c==='help()'){showHelp();return;}
+  // clear
+  if(c==='clear'||c==='cls'){clearTerm();return;}
+  // import / version
+  if(c.startsWith('import ')||c.startsWith('from ')){tw(`<span style="color:var(--text3)">  (imported)</span>`);return;}
+  if(c.includes('version')||c.includes('about')){tw(`<span style="color:var(--text2)">  SaavnAPI v2026.6.21  ·  Author: Abhi Singh  ·  MIT  ·  27 functions</span>`);return;}
+  // CLI comment
+  if(c.startsWith('#')){tw(`<span style="color:var(--text3)">  ${esc(c)}\n  Run:  cd SaavnAPI &amp;&amp; python Testing.py</span>`);return;}
+
+  const delay=ms=>new Promise(r=>setTimeout(r,ms));
+
+  // search_all
+  if(c.includes('search_all(')){
+    tl('  ↪ searching songs, albums, artists, playlists in parallel...','color:var(--text3)');
+    await delay(420);
+    tw(`<span style="color:var(--green)">  ✅  search_all() — 4 categories</span>`);
+    tw(`\n  <b style="color:var(--cyan)">SONGS (3)</b>`);
+    SONGS.forEach((s,i)=>showSong(s,i+1));
+    tw(`\n  <b style="color:var(--cyan)">ALBUMS (2)</b>`);
+    tw(`   1. <b>Aashiqui 2</b>  (2013)  id=14284038  songs=14`);
+    tw(`   2. <b>Aashiqui</b>  (1990)  id=1121310  songs=8`);
+    tw(`\n  <b style="color:var(--cyan)">ARTISTS (1)</b>`);
+    tw(`   1. <b>Arijit Singh</b>  id=459320  type=singer  lang=hindi`);
+    tw(`\n  <b style="color:var(--cyan)">PLAYLISTS (2)</b>`);
+    tw(`   1. <b>Best of Arijit Singh</b>  id=159144718  songs=50`);
+    return;
+  }
+
+  // search (not search_all/artists/albums/playlists)
+  if(c.includes('search(')&&!c.includes('search_s')&&!c.includes('search_al')&&!c.includes('search_ar')&&!c.includes('search_p')&&!c.includes('all')){
+    tl('  ↪ searching...','color:var(--text3)');
+    await delay(360);
+    tw(`<span style="color:var(--green)">  ✅  ${SONGS.length} songs</span>`);
+    SONGS.forEach((s,i)=>showSong(s,i+1));
+    return;
+  }
+
+  // get_songs batch
+  if(c.includes('get_songs(')){
+    tl('  ↪ batch fetching in one API call...','color:var(--text3)');
+    await delay(300);
+    tw(`<span style="color:var(--green)">  ✅  Fetched 3/3 songs</span>`);
+    SONGS.forEach((s,i)=>showSong(s,i+1));
+    return;
+  }
+
+  // get_radio
+  if(c.includes('get_radio(')){
+    tl('  ↪ creating entity station from song...','color:var(--text3)');
+    await delay(340);
+    tl('  ↪ station_id = "9c3e1a8b2d"  — fetching tracks...','color:var(--text3)');
+    await delay(480);
+    tw(`<span style="color:var(--green)">  ✅  ${RADIO_Q.length} radio tracks</span>`);
+    RADIO_Q.forEach((name,i)=>{
+      tw(`   ${i+1}. <b style="color:var(--text)">${esc(name)}</b>  <span style="color:var(--text3)">[has media_url 320kbps]</span>`);
+    });
+    return;
+  }
+
+  // get_song (not get_songs / by_url)
+  if(c.includes('get_song(')&&!c.includes('get_songs')&&!c.includes('by_url')){
+    tl('  ↪ fetching song details...','color:var(--text3)');
+    await delay(380);
+    tw(`<span style="color:var(--green)">  ✅  Tum Hi Ho</span>`);
+    const rows=[['id','aRZbUYD7'],['song','Tum Hi Ho'],['album','Aashiqui 2'],
+      ['primary_artists','Arijit Singh'],['duration','4:22'],['year','2013'],
+      ['release_date','2013-04-16'],['language','hindi'],['label','T-Series'],
+      ['has_lyrics','True'],['explicit','False'],['views','248000000'],
+      ['media_url','https://aac.saavncdn.com/...aRZbUYD7_320.mp4'],
+    ];
+    rows.forEach(([k,v])=>{
+      const vc=k==='media_url'?`<span style="color:var(--green)">${esc(v)}</span>`:esc(v);
+      tw(`  <b style="color:var(--text)">${k.padEnd(20)}</b> ${vc}`);
+    });
+    return;
+  }
+
+  // get_song_by_url / get_album_by_url / get_playlist_by_url
+  if(c.includes('by_url(')){
+    tl('  ↪ extracting token from URL → calling webapi.get...','color:var(--text3)');
+    await delay(450);
+    tw(`<span style="color:var(--green)">  ✅  Resolved successfully</span>`);
+    if(c.includes('song_by_url')){
+      tw(`  <b>song        </b> Tum Hi Ho\n  <b>artists     </b> Arijit Singh\n  <b>duration    </b> 4:22\n  <b>media_url   </b> <span style="color:var(--green)">https://aac.saavncdn.com/...aRZbUYD7_320.mp4</span>`);
+    } else if(c.includes('album_by_url')){
+      tw(`  <b>name        </b> Rockstar\n  <b>year        </b> 2011\n  <b>language    </b> hindi\n  <b>song_count  </b> 14`);
+    } else {
+      tw(`  <b>listname    </b> Top 50 Songs\n  <b>song_count  </b> 50\n  <b>follower_count</b> 2100000`);
+    }
+    return;
+  }
+
+  // get_lyrics
+  if(c.includes('get_lyrics(')){
+    tl('  ↪ fetching lyrics...','color:var(--text3)');
+    await delay(300);
+    tw(`<span style="color:var(--green)">  ✅  1842 chars fetched</span>`);
+    tw(`\n<span style="color:var(--text2)">  Hum tere bin ab reh nahin sakte\n  Tere bina kya wajood mera\n  Tujhse juda gar ho jaayenge\n  Toh khud se hi ho jaayenge judaa\n\n  Tum hi ho, tum hi ho...\n  Ab tum hi ho, ab tum hi ho...\n  Meri ada, tum hi ho... tum hi ho\n\n  <span style="color:var(--text3)">  … (1642 more chars)</span></span>`);
+    return;
+  }
+
+  // get_suggestions
+  if(c.includes('get_suggestions(')){
+    tl('  ↪ fetching recommendations...','color:var(--text3)');
+    await delay(360);
+    const sugg=[{s:'Channa Mereya',a:'Arijit Singh',id:'sug001',dur:'4:49',l:'hindi',ly:true},{s:'Ae Dil Hai Mushkil',a:'Arijit Singh',id:'sug002',dur:'5:14',l:'hindi',ly:true},{s:'Gerua',a:'Arijit Singh',id:'sug003',dur:'4:42',l:'hindi',ly:true},{s:'Hawaa Hawaa',a:'Mika Singh',id:'sug004',dur:'3:38',l:'hindi',ly:false},{s:'Phir Mohabbat',a:'Arijit Singh',id:'sug005',dur:'4:11',l:'hindi',ly:true}];
+    tw(`<span style="color:var(--green)">  ✅  5 suggestions</span>`);
+    sugg.forEach((s,i)=>showSong(s,i+1));
+    return;
+  }
+
+  // get_artist
+  if(c.includes('get_artist(')&&!c.includes('top_songs')&&!c.includes('top_albums')){
+    tl('  ↪ fetching artist profile...','color:var(--text3)');
+    await delay(480);
+    tw(`<span style="color:var(--green)">  ✅  Arijit Singh</span>`);
+    [['id','459320'],['dominant_type','singer'],['dominant_language','Hindi'],
+     ['follower_count','34100000'],['is_verified','True'],['twitter','twitter.com/arijitsingh']
+    ].forEach(([k,v])=>tw(`  <b>${k.padEnd(22)}</b> ${v}`));
+    tw(`\n  <b>Top Songs:</b>`);
+    ['Tum Hi Ho','Channa Mereya','Ae Dil Hai Mushkil','Tera Yaar Hoon Main','Soch Na Sake'].forEach((n,i)=>tw(`   ${i+1}. ${esc(n)}`));
+    tw(`\n  <b>Similar:</b> <span style="color:var(--text2)">Atif Aslam, Armaan Malik, Jubin Nautiyal, Darshan Raval, KK</span>`);
+    return;
+  }
+
+  // get_album
+  if(c.includes('get_album(')&&!c.includes('by_url')){
+    tl('  ↪ fetching album...','color:var(--text3)');
+    await delay(360);
+    tw(`<span style="color:var(--green)">  ✅  Aashiqui 2</span>`);
+    tw(`  <b>id           </b> 14284038\n  <b>primary_artists</b> Arijit Singh, Palak Muchhal\n  <b>year         </b> 2013\n  <b>language     </b> hindi\n  <b>song_count   </b> 14`);
+    tw(`\n  <b>Tracks:</b>`);
+    ['Tum Hi Ho','Sun Raha Hai Na Tu','Chahun Main Ya Naa','Milne Hai Mujhse Aayi'].forEach((n,i)=>tw(`   ${i+1}. ${esc(n)}`));
+    return;
+  }
+
+  // get_playlist
+  if(c.includes('get_playlist(')&&!c.includes('by_url')){
+    tl('  ↪ fetching playlist...','color:var(--text3)');
+    await delay(360);
+    tw(`<span style="color:var(--green)">  ✅  Best of Arijit Singh</span>`);
+    tw(`  <b>song_count   </b> 50\n  <b>follower_count</b> 1200000\n  <b>language     </b> hindi`);
+    tw(`\n  <b>Songs (first 5):</b>`);
+    SONGS.concat([{id:'sug001',s:'Channa Mereya',a:'Arijit Singh',dur:'4:49',l:'hindi',ly:true}]).slice(0,5).forEach((s,i)=>showSong(s,i+1));
+    return;
+  }
+
+  // get_trending
+  if(c.includes('get_trending(')){
+    tl('  ↪ fetching from launch data...','color:var(--text3)');
+    await delay(340);
+    tw(`<span style="color:var(--green)">  ✅  ${TRENDING.length} trending items</span>`);
+    TRENDING.forEach((item,i)=>tw(`   ${i+1}. <b>${esc(item.t)}</b>  <span style="color:var(--text3)">[${item.kind}]  lang=${item.l}  release=${item.d}</span>`));
+    return;
+  }
+
+  // get_modules
+  if(c.includes('get_modules(')){
+    tl('  ↪ loading all homepage modules from launch data...','color:var(--text3)');
+    await delay(440);
+    tw(`<span style="color:var(--green)">  ✅  4 modules</span>`);
+    tw(`\n  <b style="color:var(--cyan)">TRENDING (5)</b>`);
+    TRENDING.slice(0,3).forEach((item,i)=>tw(`   ${i+1}. <b>${esc(item.t)}</b>  [${item.kind}]`));
+    tw(`\n  <b style="color:var(--cyan)">NEW_RELEASES (3)</b>`);
+    ['Ae Dil Hai Mushkil','Brahmastra','Animal'].forEach((n,i)=>tw(`   ${i+1}. <b>${esc(n)}</b>  [album]`));
+    tw(`\n  <b style="color:var(--cyan)">CHARTS (4)</b>`);
+    CHARTS.forEach((c,i)=>tw(`   ${i+1}. <b>${esc(c.t)}</b>  songs=${c.n}  followers=${c.f}`));
+    tw(`\n  <b style="color:var(--cyan)">FEATURED_PLAYLISTS (3)</b>`);
+    ['Bollywood Morning','Hindi Workout','90s Nostalgia'].forEach((n,i)=>tw(`   ${i+1}. <b>${esc(n)}</b>`));
+    return;
+  }
+
+  // get_charts
+  if(c.includes('get_charts(')){
+    tl('  ↪ fetching charts from launch data...','color:var(--text3)');
+    await delay(310);
+    tw(`<span style="color:var(--green)">  ✅  ${CHARTS.length} charts</span>`);
+    CHARTS.forEach((c,i)=>tw(`   ${i+1}. <b>${esc(c.t)}</b>  songs=${c.n}  followers=${c.f}`));
+    tl('  ℹ  Copy an id → use get_playlist(id) to get all songs','color:var(--text3)');
+    return;
+  }
+
+  // get_top_searches
+  if(c.includes('get_top_searches(')){
+    tl('  ↪ fetching top search terms...','color:var(--text3)');
+    await delay(280);
+    tw(`<span style="color:var(--green)">  ✅  ${TOP_SEARCHES.length} top search terms</span>`);
+    TOP_SEARCHES.forEach((t,i)=>tw(`  ${String(i+1).padStart(2)}. <span style="color:var(--text)">${esc(t)}</span>`));
+    return;
+  }
+
+  // JioSaavnClient / async with
+  if(c.includes('jiosaavnclient')||c.includes('async with')){
+    tl('  ↪ opening shared aiohttp session...','color:var(--text3)');
+    await delay(300);
+    tl('  ↪ 4 calls running in parallel on one session...','color:var(--text3)');
+    await delay(600);
+    tw(`<span style="color:var(--green)">  ✅  search → 3 songs</span>`);
+    SONGS.forEach(s=>tw(`     <b>${esc(s.s)}</b>  — ${esc(s.a)}`));
+    tw(`<span style="color:var(--green)">  ✅  charts → 4 charts</span>`);
+    tw(`<span style="color:var(--green)">  ✅  modules → trending=5  releases=3  charts=4</span>`);
+    tw(`<span style="color:var(--green)">  ✅  trending → 5 items</span>`);
+    tw(`\n  <span style="color:var(--green)">All 4 calls on a single session ✅</span>`);
+    return;
+  }
+
+  // unknown
+  tl('  (unknown — type help or click a quick button above)','color:var(--text3)');
+}
+
+function showHelp(){
+  tw(`
+<b style="color:var(--cyan)">  SaavnAPI v2026.6.21 — 27 functions</b>
+
+  <b style="color:var(--text2)">SEARCH</b>  search · search_songs · search_albums · search_artists · search_playlists
+           <span style="color:var(--green)">search_all(query, limit)  🆕  all 4 in one parallel call</span>
+
+  <b style="color:var(--text2)">SONGS</b>   get_song(id) · get_lyrics(id) · get_suggestions(id)
+           <span style="color:var(--green)">get_songs(ids)  🆕  batch up to 50</span>
+           <span style="color:var(--green)">get_radio(id)   🆕  seeded radio station</span>
+
+  <b style="color:var(--text2)">URL RESOLVERS</b>
+           <span style="color:var(--green)">get_song_by_url(url)      🆕
+           get_album_by_url(url)     🆕
+           get_playlist_by_url(url)  🆕</span>
+
+  <b style="color:var(--text2)">ARTISTS</b>  get_artist(id) · get_artist_top_songs(id) · get_artist_top_albums(id)
+
+  <b style="color:var(--text2)">ALBUMS / PLAYLISTS</b>  get_album(id) · get_playlist(id)
+
+  <b style="color:var(--text2)">DISCOVERY</b>
+           get_trending · get_new_releases · get_charts · get_featured_playlists
+           <span style="color:var(--green)">get_top_searches()  🆕
+           get_modules(language)  🆕  all homepage data at once</span>
+
+  <b style="color:var(--text2)">CLIENT</b>   JioSaavnClient  — shared aiohttp session for batching
+
+  <span style="color:var(--text3)">Click any quick-button above or type an await call to demo it.</span>
+`);
+}
+
+// ── Init ─────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',()=>{
+  clearTerm();
+  document.getElementById('term-input').addEventListener('keydown',termKeydown);
+});
+</script>
+</body>
+</html>
