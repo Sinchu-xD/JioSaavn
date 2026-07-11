@@ -1,4 +1,4 @@
-"""SaavnKit MCP server — expose the API to AI agents (Claude / ChatGPT / Cursor).
+"""SaavnAPI MCP server — expose the API to AI agents (Claude / ChatGPT / Cursor).
 
 Uses the reference `mcp` Python SDK (`pip install mcp`) over stdio.
 Run:  python -m JioSaavn.Servers.MCP
@@ -15,7 +15,7 @@ def build_server():
     from JioSaavn import JioSaavnClient
 
     client = JioSaavnClient()
-    app = Server("saavnkit")
+    app = Server("SaavnAPI")
 
     TOOLS = [
         Tool(name="search_songs", description="Search JioSaavn songs by keyword.",

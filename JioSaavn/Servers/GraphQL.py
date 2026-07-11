@@ -51,7 +51,7 @@ def build_schema():
 def build_app():
     from fastapi import FastAPI  # type: ignore
     from strawberry.fastapi import GraphQLRouter  # type: ignore
-    app = FastAPI(title="SaavnKit GraphQL")
+    app = FastAPI(title="SaavnAPI GraphQL")
     app.include_router(GraphQLRouter(build_schema()), prefix="/graphql")
     return app
 

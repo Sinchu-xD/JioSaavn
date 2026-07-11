@@ -1,4 +1,4 @@
-# 🎧 SaavnKit — The Complete JioSaavn Async Toolkit
+# 🎧 SaavnAPI — The Complete JioSaavn Async Toolkit
 
 > ⚡ **v2026.7.11** — Fast, fully-async Python library for JioSaavn with 70+ features: core APIs, downloads, AI analysis, smart discovery, sync with Spotify/YouTube, MCP/GraphQL/WebSocket servers, and more.
 
@@ -171,4 +171,4 @@ MIT — free for personal & educational use. Not affiliated with JioSaavn.
 
 ## 🙏 Credits
 
-Maintained by the SaavnKit community. PRs welcome — see `CONTRIBUTING.md`.
+Maintained by the SaavnAPI community. PRs welcome — see `CONTRIBUTING.md`.

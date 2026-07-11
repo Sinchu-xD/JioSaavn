@@ -54,7 +54,7 @@ async def _handler(ws) -> None:
 async def main(host: str = "0.0.0.0", port: int = 8765) -> None:
     import websockets  # type: ignore
     async with websockets.serve(_handler, host, port):
-        print(f"[SaavnKit WS] listening on ws://{host}:{port}")
+        print(f"[SaavnAPI WS] listening on ws://{host}:{port}")
         await asyncio.Future()
 
 

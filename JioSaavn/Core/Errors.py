@@ -1,9 +1,9 @@
-"""Typed exception hierarchy for SaavnKit."""
+"""Typed exception hierarchy for SaavnAPI."""
 from __future__ import annotations
 
 
 class SaavnError(Exception):
-    """Base for every SaavnKit error."""
+    """Base for every SaavnAPI error."""
 
 
 class NetworkError(SaavnError):

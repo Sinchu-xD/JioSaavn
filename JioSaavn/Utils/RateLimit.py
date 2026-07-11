@@ -1,4 +1,4 @@
-"""Token-bucket async rate limiter for SaavnKit."""
+"""Token-bucket async rate limiter for SaavnAPI."""
 from __future__ import annotations
 
 import asyncio

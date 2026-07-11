@@ -1,4 +1,4 @@
-"""Async LRU cache with TTL for SaavnKit."""
+"""Async LRU cache with TTL for SaavnAPI."""
 from __future__ import annotations
 
 import asyncio

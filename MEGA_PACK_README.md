@@ -1,4 +1,4 @@
-# SaavnKit Mega Feature Pack
+# SaavnAPI Mega Feature Pack
 
 25 new features across 6 packs, added to your existing `JioSaavn` package.
 

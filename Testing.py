@@ -1,5 +1,5 @@
 """
-SaavnKit — Complete Test Suite
+SaavnAPI — Complete Test Suite
 ================================
 Version : 2026.7.11
 Covers  : Core APIs · Download · AI Analysis · Discovery · Smart Queue
@@ -309,7 +309,7 @@ if DOWNLOAD_AVAILABLE:
 
     @test("download", "download_with_lyrics (network + writes MP3)")
     async def _(c):
-        out = os.path.join(tempfile.gettempdir(), "saavnkit_test.mp3")
+        out = os.path.join(tempfile.gettempdir(), "SaavnAPI_test.mp3")
         path = await download_with_lyrics(c, SEED_SONG_ID, out, bitrate=160)
         size = os.path.getsize(path) if os.path.exists(path) else 0
         try: os.unlink(path)
@@ -362,7 +362,7 @@ async def run(suite_filter: str | None = None) -> None:
     if not picked:
         print(f"No tests match suite={suite_filter!r}"); return
 
-    print(f"\n🎧 SaavnKit Test Runner — {len(picked)} tests\n" + "─" * 60)
+    print(f"\n🎧 SaavnAPI Test Runner — {len(picked)} tests\n" + "─" * 60)
     passed = failed = skipped = 0
     t0 = time.perf_counter()
 
@@ -407,7 +407,7 @@ def _list() -> None:
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(description="SaavnKit full test suite")
+    ap = argparse.ArgumentParser(description="SaavnAPI full test suite")
     ap.add_argument("--suite", choices=sorted({t[0] for t in TESTS}),
                     help="run only one suite")
     ap.add_argument("--list", action="store_true", help="list all tests and exit")
