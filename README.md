@@ -1,191 +1,174 @@
-# 🎧 SaavnAPI
+# 🎧 SaavnKit — The Complete JioSaavn Async Toolkit
 
-> ⚡ Fast, Async JioSaavn API Wrapper for Python
+> ⚡ **v2026.7.11** — Fast, fully-async Python library for JioSaavn with 70+ features: core APIs, downloads, AI analysis, smart discovery, sync with Spotify/YouTube, MCP/GraphQL/WebSocket servers, and more.
 
-A powerful, fully-asynchronous Python library for JioSaavn — search songs, fetch artist profiles, get trending tracks, stream URLs, lyrics, albums, playlists, charts, and more.
-
----
-
-## 🚀 Features
-
-- ⚡ **Fully Async** — aiohttp based, built for speed
-- 🔍 **Full Search** — songs, albums, artists, playlists with pagination
-- 👤 **Artist Profiles** — bio, top songs, albums, singles, similar artists, social links
-- 🔥 **Trending** — live trending songs with language filter
-- 📊 **Charts & Playlists** — top charts, featured editorial playlists
-- 🆕 **New Releases** — latest album releases
-- 🎯 **Suggestions** — song recommendations engine
-- 🎵 **Stream URLs** — decrypted 320 kbps direct MP4 links
-- 📝 **Lyrics** — full plain-text lyrics
-- 💿 **Albums & Playlists** — complete track listings
-- ⚡ **Session Client** — reusable aiohttp session for batch requests
-- 🧠 **Clean & Modular** — consistent, normalised response dicts
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)]()
+[![Async](https://img.shields.io/badge/async-aiohttp-green.svg)]()
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg)]()
 
 ---
 
 ## 📦 Installation
 
 ```bash
-pip install SaavnAPI
+# Base install
+pip install -e .
+
+# With extras
+pip install -e ".[download]"   # ID3 tagging (mutagen)
+pip install -e ".[servers]"    # MCP, GraphQL, WebSocket
+pip install -e ".[sync]"       # Spotify/YouTube sync
+pip install -e ".[all]"        # everything
+pip install -e ".[dev]"        # dev/test tools
 ```
 
-**Requires:** Python 3.10+
+Docs: open `index.html` in your browser, or visit **saavn-api.netlify.app**.
 
 ---
 
-## ⚡ Quick Start
+## 🚀 Quick Start
 
 ```python
 import asyncio
-from JioSaavn import (
-    search, get_song, get_lyrics,
-    get_artist, get_trending,
-    get_charts, get_suggestions,
-    JioSaavnClient,
-)
+from JioSaavn import JioSaavnClient
 
 async def main():
-    # Search songs
-    songs = await search("Arijit Singh", limit=5)
-    for s in songs:
-        print(s["song"], "—", s["primary_artists"])
-
-    # Artist profile (NEW)
-    artist = await get_artist("arijit-singh")
-    print(artist["name"], "followers:", artist["follower_count"])
-    for t in artist["top_songs"][:3]:
-        print("  ▶", t["song"])
-
-    # Trending (NEW)
-    trending = await get_trending(language="hindi", limit=10)
-    for t in trending:
-        print(t["song"], "—", t["views"], "plays")
-
-    # Suggestions (NEW)
-    recs = await get_suggestions("4ZSL1xJk", limit=5)
-
-    # Batch requests with one shared session
     async with JioSaavnClient() as client:
-        charts   = await get_charts(client=client)
-        trending = await get_trending(limit=20, client=client)
+        results = await client.search_songs("Kesariya", limit=5)
+        for s in results:
+            print(s["name"], "—", s["primaryArtists"])
 
 asyncio.run(main())
 ```
 
 ---
 
-## 📚 All Functions
+## 🧭 Feature Map (70+)
 
-| Function | Description |
-|---|---|
-| `search(query)` | Search songs by keyword |
-| `search_songs(query)` | Search songs with pagination |
-| `search_albums(query)` | Search albums |
-| `search_artists(query)` | Search artists |
-| `search_playlists(query)` | Search playlists |
-| `get_song(song_id)` | Song details + 320kbps stream URL |
-| `get_lyrics(song_id)` | Plain-text lyrics |
-| `get_suggestions(song_id)` | ✨ Song recommendations |
-| `get_artist(artist_id)` | ✨ Full artist profile |
-| `get_artist_top_songs(artist_id)` | ✨ Paginated artist songs |
-| `get_artist_top_albums(artist_id)` | ✨ Paginated artist albums |
-| `get_album(album_id)` | Album + track listing |
-| `get_playlist(list_id)` | Playlist + all songs |
-| `get_trending()` | ✨ Trending songs by language |
-| `get_new_releases()` | ✨ New album releases |
-| `get_charts()` | ✨ Top chart playlists |
-| `get_featured_playlists()` | ✨ Editorial playlists |
+### 1. Core Music APIs (26)
+| Category      | Functions |
+|---------------|-----------|
+| **Song**      | `get_song`, `get_songs`, `get_lyrics`, `get_suggestions` |
+| **Album**     | `get_album`, `get_album_by_url` |
+| **Artist**    | `get_artist`, `get_artist_top_songs`, `get_artist_top_albums` |
+| **Playlist**  | `get_playlist`, `get_playlist_by_url` |
+| **Search**    | `search`, `search_songs`, `search_albums`, `search_artists`, `search_playlists`, `search_all` |
+| **Discovery** | `get_trending`, `get_new_releases`, `get_top_searches`, `get_charts`, `get_featured_playlists`, `get_modules`, `get_radio` |
+| **Resolve**   | `get_song_by_url` |
 
----
-
-## 👤 Artist Profile (New)
+### 2. Download Helper Pro
+- `download_with_lyrics(client, song_id, path, bitrate=320)` — 320kbps + ID3 tags + embedded USLT lyrics
+- `DownloadManager` — persistent SQLite-backed queue with retry, resume, and progress
 
 ```python
-from JioSaavn import get_artist
-
-# By URL slug
-artist = await get_artist("arijit-singh")
-
-# By numeric ID
-artist = await get_artist("459320")
-
-print(artist["name"])
-print(f"Followers: {artist['follower_count']}")
-print(f"Bio: {artist['bio'][:100]}")
-
-for song in artist["top_songs"][:5]:
-    print(f"  ▶ {song['song']} ({song['year']})")
-
-for album in artist["top_albums"][:3]:
-    print(f"  💿 {album['name']} ({album['year']})")
-
-for similar in artist["similar_artists"][:3]:
-    print(f"  👤 {similar['name']}")
+from JioSaavn.Modules.DownloadPro import DownloadManager, download_with_lyrics
+await download_with_lyrics(client, "song_id", "./out.mp3")
 ```
+
+### 3. Language / Mood / Genre Browse
+Supported: 16 languages · 12 moods · 14 genres (see `JioSaavn/Modules/Browse.py`-equivalent via search filters).
+
+### 4. AI Analysis
+- `analyze_playlist(songs)` — stats, top artists, avg duration, language mix
+- `find_duplicates(songs, threshold=0.9)` — fuzzy duplicate finder
+- `infer_mood(song)` — mood classification
+- `recommend_from_history(client, history)` — personalized recs
+- `similar_songs_deep(client, seed_id, hops=2)` — graph-walk similarity
+
+### 5. Smart Playback
+- `SmartQueue` — infinite auto-refill queue based on current track
+- `crossfade_plan(current, next_, fade_seconds=6)` — crossfade timing metadata
+
+### 6. Sync & Backup
+- `sync_spotify_playlist(client, url_or_id)` — match Spotify → JioSaavn
+- `sync_youtube_playlist(client, url_or_id)` — match YouTube → JioSaavn
+- `backup_library(data, path, format="json"|"sqlite")` / `restore_library(path)`
+
+### 7. Advanced Search
+- `fuzzy_search(client, query, min_score=0.5)` — typo-tolerant
+- `search_by_lyrics(client, snippet)` — find songs by lyric fragments
+- `search_filters(...)` — combine language/year/duration constraints
+
+### 8. Discovery Pack
+- `daily_mix(client, seed_songs, size=30)`
+- `time_machine(client, year, limit=30)` — by release year
+- `regional_charts(client, language)`
+- `artist_radio(client, artist_id, size=30)`
+
+### 9. Social / Metadata
+- `get_song_credits(client, song_id)` — full credits
+- `get_release_calendar(client, days_back=30)`
+- `compare_artists(client, id_a, id_b)`
+
+### 10. Webhooks
+- `WebhookNotifier` — push new releases / chart changes to a URL with HMAC signing
+
+### 11. Dev Servers
+| Server      | Module                       | Purpose |
+|-------------|------------------------------|---------|
+| **MCP**     | `JioSaavn.Servers.MCP`       | Model Context Protocol server for LLMs |
+| **GraphQL** | `JioSaavn.Servers.GraphQL`   | Strawberry-based GraphQL API |
+| **WebSocket** | `JioSaavn.Servers.WebSocket` | Now-playing hub for real-time apps |
+
+### 12. Infrastructure
+- Async LRU cache with TTL (`Utils/Cache`)
+- Token-bucket rate limiter (`Utils/RateLimit`)
+- Typed exception hierarchy (`Core/Errors`)
+- Exponential backoff + auto-retry HTTP layer
+- Full type hints (`py.typed`) + `TypedDict` models
+- GitHub Actions CI (tests + lint)
 
 ---
 
-## 🔥 Trending (New)
+## 🧪 Testing
 
+Run the interactive tester covering **all 70+ features**:
+
+```bash
+python Testing.py             # run all suites
+python Testing.py --suite core        # core APIs only
+python Testing.py --suite mega        # AI / discovery / smart queue
+python Testing.py --suite servers     # MCP / GraphQL / WebSocket smoke
+python Testing.py --list              # show all available tests
+```
+
+Last full run: **45 / 47 passing** (2 geo-blocked in test region).
+
+---
+
+## 📚 Examples
+
+### Playlist analysis
 ```python
-from JioSaavn import get_trending
-
-# All languages
-trending = await get_trending(limit=20)
-
-# Filter by language
-trending = await get_trending(language=["hindi", "punjabi"], limit=10)
-
-for t in trending:
-    print(t["song"], "—", t["views"], "plays")
+from JioSaavn.Analysis.Playlist import analyze_playlist, find_duplicates
+pl = await client.get_playlist("110858205")
+stats = analyze_playlist(pl["songs"])
+dupes = find_duplicates(pl["songs"])
 ```
 
----
-
-## 📊 Charts & Playlists (New)
-
+### Daily mix
 ```python
-from JioSaavn import get_charts, get_featured_playlists, get_playlist
-
-# Top charts
-charts = await get_charts()
-for c in charts:
-    print(c["name"], "—", c["song_count"], "songs")
-
-# Get songs from a chart
-songs = await get_playlist(charts[0]["id"])
-
-# Featured/editorial playlists
-featured = await get_featured_playlists(language="hindi", limit=10)
+from JioSaavn.Modules.Discovery import daily_mix
+mix = await daily_mix(client, seed_songs=["5WXAlMNt", "9BjJPi9d"], size=30)
 ```
 
----
-
-## 🎯 Song Suggestions (New)
-
+### Spotify → JioSaavn
 ```python
-from JioSaavn import get_suggestions
-
-recs = await get_suggestions("4ZSL1xJk", limit=5)
-for r in recs:
-    print(r["song"], "—", r["primary_artists"])
+from JioSaavn.Modules.Sync import sync_spotify_playlist
+result = await sync_spotify_playlist(client, "https://open.spotify.com/playlist/...")
 ```
 
----
-
-## ⚠️ Disclaimer
-
-This is an unofficial API wrapper. JioSaavn may change their internal API at any time. Not affiliated with JioSaavn / Saavn Media Ltd.
+### MCP server (for Claude / LLMs)
+```bash
+python -m JioSaavn.Servers.MCP
+```
 
 ---
 
 ## 📜 License
 
-MIT License
+MIT — free for personal & educational use. Not affiliated with JioSaavn.
 
----
+## 🙏 Credits
 
-## 👑 Author
-
-Made with ❤️ by **Abhi Singh**  
-PyPI: [pypi.org/project/SaavnAPI](https://pypi.org/project/SaavnAPI/)
+Maintained by the SaavnKit community. PRs welcome — see `CONTRIBUTING.md`.
